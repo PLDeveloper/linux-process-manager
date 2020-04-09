@@ -65,21 +65,16 @@ vector<int> LinuxParser::Pids() {
   return pids;
 }
 
-
 // Calculates the system memory usage from data in /proc/meminfo using the same approach as htop
 // https://stackoverflow.com/questions/41224738/how-to-calculate-system-memory-usage-from-proc-meminfo-like-htop/41251290#41251290
-
 float LinuxParser::MemoryUtilization() { 
   float mem_total, mem_free, total_usage; 
   string line, name, value, units;
-
   std::ifstream file(kProcDirectory + kMeminfoFilename);
   if (file.is_open()) {
-    while (std::getline(file, line)) {
-      
+    while (std::getline(file, line)) {  
       std::istringstream lstream(line);
       lstream >> name >> value >> units; 
-
       if (!value.empty()) {
         if (name == "MemTotal:") {
           mem_total = std::stof(value);
@@ -89,10 +84,8 @@ float LinuxParser::MemoryUtilization() {
           break;
         }
       }
-
     }
   }
-
   total_usage = (mem_total - mem_free) / mem_total;
   return total_usage; 
 }
@@ -101,24 +94,51 @@ float LinuxParser::MemoryUtilization() {
 long LinuxParser::UpTime() { 
   string line; 
   float uptime = 0.0; 
-
   std::ifstream file(kProcDirectory + kUptimeFilename);
   if (file.is_open()) {
     std::getline(file, line);
-
     std::istringstream lstream(line);
     linestream >> uptime; 
-
   }
-
   return long(uptime);  
 }
 
-// TODO: Read and return CPU utilization
-vector<string> LinuxParser::CpuUtilization() { return {}; }
+// Read and returns the set of numbers in /proc/stat used to compute the CPU utilization
+// Called in Processor::Utilization() to perform the actual calculation
+vector<string> LinuxParser::CpuUtilization() { 
+  string line, value;
+  vector<string> values;
+  std::ifstream file(kProcDirectory + kStatFilename);
+  if (file.is_open()) {
+    std::getline(file, line);
+    std::istringstream lstream(line);
+    // Toss out the leading 'cpu' word...
+    lstream >> value; 
+    // ...then collect the rest of the relevant values
+    while (lstream >> value) {
+      values.push_back(val);
+    }
+  }
+  return values; 
+}
 
-// TODO: Read and return the total number of processes
-int LinuxParser::TotalProcesses() { return 0; }
+// Reads and returns the total number of processes stored in /proc/stat
+int LinuxParser::TotalProcesses() { 
+  string line, key;
+  int total_processes = 0; 
+  std::ifstream file(kProcDirectory + kStatFilename);
+  if (file.is_open()) {
+    while (std::getline(file, line)) {
+      std::istringstream lstream(line);
+      lstream >> key;
+      if (key == "processes") {
+        lstream >> total_processes;
+        break;
+      }
+    }
+  }
+  return total_processes; 
+}
 
 // TODO: Read and return the number of running processes
 int LinuxParser::RunningProcesses() { return 0; }
