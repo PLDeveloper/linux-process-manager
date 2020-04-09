@@ -1,7 +1,9 @@
 #include <dirent.h>
+#include <math.h>
 #include <unistd.h>
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "linux_parser.h"
 
@@ -10,7 +12,6 @@ using std::string;
 using std::to_string;
 using std::vector;
 
-// DONE: An example of how to read data from the filesystem
 string LinuxParser::OperatingSystem() {
   string line;
   string key;
@@ -33,7 +34,6 @@ string LinuxParser::OperatingSystem() {
   return value;
 }
 
-// DONE: An example of how to read data from the filesystem
 string LinuxParser::Kernel() {
   string os, kernel;
   string line;
@@ -46,7 +46,6 @@ string LinuxParser::Kernel() {
   return kernel;
 }
 
-// BONUS: Update this to use std::filesystem
 vector<int> LinuxParser::Pids() {
   vector<int> pids;
   DIR* directory = opendir(kProcDirectory.c_str());
@@ -66,24 +65,54 @@ vector<int> LinuxParser::Pids() {
   return pids;
 }
 
-// TODO: Read and return the system memory utilization
-float LinuxParser::MemoryUtilization() { return 0.0; }
 
-// TODO: Read and return the system uptime
-long LinuxParser::UpTime() { return 0; }
+// Calculates the system memory usage from data in /proc/meminfo using the same approach as htop
+// https://stackoverflow.com/questions/41224738/how-to-calculate-system-memory-usage-from-proc-meminfo-like-htop/41251290#41251290
 
-// TODO: Read and return the number of jiffies for the system
-long LinuxParser::Jiffies() { return 0; }
+float LinuxParser::MemoryUtilization() { 
+  float mem_total, mem_free, total_usage; 
+  string line, name, value, units;
 
-// TODO: Read and return the number of active jiffies for a PID
-// REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::ActiveJiffies(int pid[[maybe_unused]]) { return 0; }
+  std::ifstream file(kProcDirectory + kMeminfoFilename);
+  if (file.is_open()) {
+    while (std::getline(file, line)) {
+      
+      std::istringstream lstream(line);
+      lstream >> name >> value >> units; 
 
-// TODO: Read and return the number of active jiffies for the system
-long LinuxParser::ActiveJiffies() { return 0; }
+      if (!value.empty()) {
+        if (name == "MemTotal:") {
+          mem_total = std::stof(value);
+        } else if (name == "MemFree:") {
+          mem_free = std::stof(value);
+        } else {
+          break;
+        }
+      }
 
-// TODO: Read and return the number of idle jiffies for the system
-long LinuxParser::IdleJiffies() { return 0; }
+    }
+  }
+
+  total_usage = (mem_total - mem_free) / mem_total;
+  return total_usage; 
+}
+
+// Returns the uptime of the entire system from /proc/uptime 
+long LinuxParser::UpTime() { 
+  string line; 
+  float uptime = 0.0; 
+
+  std::ifstream file(kProcDirectory + kUptimeFilename);
+  if (file.is_open()) {
+    std::getline(file, line);
+
+    std::istringstream lstream(line);
+    linestream >> uptime; 
+
+  }
+
+  return long(uptime);  
+}
 
 // TODO: Read and return CPU utilization
 vector<string> LinuxParser::CpuUtilization() { return {}; }
