@@ -171,7 +171,7 @@ string LinuxParser::Command(int pid) {
 // Read and return the user ID associated with a process
 string LinuxParser::Uid(int pid) { 
   string line, key;
-  string fname = "/proc/" + to_string(pid) + "/status"
+  string fname = "/proc/" + to_string(pid) + "/status";
   string uid = "";
   std::ifstream file(fname);
   if (file.is_open()) {
@@ -234,7 +234,7 @@ long LinuxParser::UpTime(int pid) {
   if (file.is_open()) {
     std::getline(file, line);
     std::istringstream lstream(line);
-    // The 22nd number in the stream is the value we want
+    // The 22nd number in the stream is the vaaue we want
     for (int i = 0; i < 22; i++) { 
       lstream >> value;
     }
@@ -243,4 +243,33 @@ long LinuxParser::UpTime(int pid) {
     }
   }
   return systime; 
+}
+
+float LinuxParser::ProcessCPU(int pid) {
+  string fname = "/proc/" + to_string(pid) + "/stat";
+  string line, value; 
+  float uptime, utime, stime, starttime, hertz;
+  uptime = LinuxParser::UpTime();
+  std::ifstream file(fname);
+  if (file.is_open()) {
+    std::getline(file, line);
+    std::istringstream lstream(line);
+    int i = 0; 
+    while (lstream >> value && !value.empty()) {
+      if (i == 13) {
+        utime = std::stof(value);
+      } else if (i == 14) {
+        stime = std::stof(value);
+      } else if (i == 21) {
+        starttime = std::stof(value);
+      }
+      i++; 
+    }
+  }
+  hertz = sysconf(_SC_CLK_TCK);
+  float total_time, seconds, cpu_usage;
+  total_time = utime + stime;
+  seconds = uptime - (starttime / hertz);
+  cpu_usage = 100*(total_time / hertz) / seconds;
+  return cpu_usage;
 }
