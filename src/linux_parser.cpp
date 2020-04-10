@@ -186,14 +186,61 @@ string LinuxParser::Uid(int pid) {
   return uid; 
 }
 
-// TODO: Read and return the memory used by a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Ram(int pid[[maybe_unused]]) { return string(); }
+// Read and return the memory used by a process
+string LinuxParser::Ram(int pid) { 
+  string fname = "/proc/" + to_string(pid) + "/status";
+  string line, key;
+  string memory = ""; 
+  std::ifstream file(fname);
+  if (file.is_open()) {
+    while (std::getline(file, line)) {
+      std::istringstream lstream(line);
+      if (lstream >> key && key == "VmSize:") {
+        lstream >> memory; 
+        break;
+      }
+    }
+  }
+  return memory;
+}
 
-// TODO: Read and return the user associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::User(int pid[[maybe_unused]]) { return string(); }
+// Gets the user name associated with a particular process
+string LinuxParser::User(int pid) { 
+  string line, toss, uid;
+  string user = "";
+  // Get the uid associated with the target process
+  int target = std::stoi(LinuxParser::Uid(pid));
+  // Map the target uid to it's user name 
+  std::ifstream file(kPasswordPath);
+  if (file.is_open()) {
+    while (std::getline(file, line)) {
+      std::replace(line.begin(), line.end(), ':', ' ');
+      std::istringstream lstream(line);
+      lstream >> user >> toss >> uid;
+      if (!uid.empty() && std::stoi(uid) == target) {
+        break;
+      }
+    }
+  }
+  return user; 
+}
 
-// TODO: Read and return the uptime of a process
-// REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::UpTime(int pid[[maybe_unused]]) { return 0; }
+// Read and return the uptime of a process
+long LinuxParser::UpTime(int pid) { 
+  long systime = 0; 
+  string line, value;
+  string fname = "/proc/" + to_string(pid) + "/stat";
+  std::ifstream file(fname);
+  if (file.is_open()) {
+    std::getline(file, line);
+    std::istringstream lstream(line);
+    // The 22nd number in the stream is the value we want
+    for (int i = 0; i < 22; i++) { 
+      lstream >> value;
+    }
+    if (!value.empty()) {
+      systime = std::stol(value) / sysconf(_SC_CLK_TCK);
+    }
+  }
+  return systime; 
+}
