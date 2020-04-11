@@ -1,3 +1,4 @@
+#include <math.h>
 #include <unistd.h>
 #include <cctype>
 #include <sstream>
@@ -5,29 +6,43 @@
 #include <vector>
 
 #include "process.h"
+#include "linux_parser.h"
 
 using std::string;
 using std::to_string;
 using std::vector;
 
-// TODO: Return this process's ID
-int Process::Pid() { return 0; }
+int Process::Pid() { 
+  return pid_; 
+}
 
-// TODO: Return this process's CPU utilization
-float Process::CpuUtilization() { return 0; }
+float Process::CpuUtilization() { 
+  return LinuxParser::ProcessCPU(pid_); 
+}
 
-// TODO: Return the command that generated this process
-string Process::Command() { return string(); }
+string Process::Command() { 
+  return LinuxParser::Command(pid_); 
+}
 
-// TODO: Return this process's memory utilization
-string Process::Ram() { return string(); }
+// Retrieves process memory in KB & converts to MB
+string Process::Ram() const { 
+  string ram = LinuxParser::Ram(pid_);
+  if (!ram.empty()) {
+    float mb = std::stof(ram) / 1000;
+    ram = std::to_string(int(mb));
+  }
+  return ram; 
+}
 
-// TODO: Return the user (name) that generated this process
-string Process::User() { return string(); }
+string Process::User() { 
+  return LinuxParser::User(pid_); 
+}
 
-// TODO: Return the age of this process (in seconds)
-long int Process::UpTime() { return 0; }
+long int Process::UpTime() { 
+  return LinuxParser::UpTime(pid_); 
+}
 
-// TODO: Overload the "less than" comparison operator for Process objects
-// REMOVE: [[maybe_unused]] once you define the function
-bool Process::operator<(Process const& a[[maybe_unused]]) const { return true; }
+// Use RAM usage as the basis for comparing two processes 
+bool Process::operator<(Process const& a) const { 
+  return std::stoi(this->Ram()) < std::stoi(a.Ram()); 
+}
