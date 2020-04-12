@@ -234,7 +234,7 @@ long LinuxParser::UpTime(int pid) {
   if (file.is_open()) {
     std::getline(file, line);
     std::istringstream lstream(line);
-    // The 22nd number in the stream is the vaaue we want
+    // The 22nd number in the stream is the value we want
     for (int i = 0; i < 22; i++) { 
       lstream >> value;
     }
