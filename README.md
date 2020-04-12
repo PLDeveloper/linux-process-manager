@@ -6,10 +6,10 @@ A simple terminal-based process manager for Linux written in C++.
 
 ## Features
 
-* Dislays system OS and Kernel
+* Displays system OS and Kernel
 * Shows overall % of CPU usage and RAM usage
 * Counts total processes and running processes 
-* Prints system's uptime
+* Prints system uptime
 * Provides a list of all processes ordered high-to-low by memory usage
 * Includes process information on user, CPU %, RAM usage, time spawned, and command issued
 
