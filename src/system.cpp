@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "linux_parser.h"
 #include "process.h"
 #include "processor.h"
 #include "system.h"
@@ -33,15 +34,21 @@ vector<Process>& System::Processes() {
 }
 
 std::string System::Kernel() { 
-  return LinuxParser::Kernel(); 
+  if (kernel_.empty()) {
+    kernel_ = LinuxParser::Kernel();
+  }
+  return kernel_; 
+}
+
+std::string System::OperatingSystem() { 
+  if (operating_system_.empty()) {
+    operating_system_ = LinuxParser::OperatingSystem();
+  }
+  return operating_system_;
 }
 
 float System::MemoryUtilization() { 
   return LinuxParser::MemoryUtilization(); 
-}
-
-std::string System::OperatingSystem() { 
-  return LinuxParser::OperatingSystem(); 
 }
 
 int System::RunningProcesses() { 

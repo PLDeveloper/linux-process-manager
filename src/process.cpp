@@ -21,7 +21,10 @@ float Process::CpuUtilization() {
 }
 
 string Process::Command() { 
-  return LinuxParser::Command(pid_); 
+  if (command_.empty()) {
+    command_ = LinuxParser::Command(pid_);
+  }
+  return command_;
 }
 
 // Retrieves process memory in KB & converts to MB
@@ -35,7 +38,10 @@ string Process::Ram() const {
 }
 
 string Process::User() { 
-  return LinuxParser::User(pid_); 
+  if (user_.empty()) {
+    user_ = LinuxParser::User(pid_);
+  }
+  return user_;
 }
 
 long int Process::UpTime() { 

@@ -2,16 +2,18 @@
 #define PROCESS_H
 
 #include <string>
+using std::string;
+
 /*
 Basic class for Process representation
 */
 class Process {
  public:
   int Pid();                             
-  std::string User(); 
-  std::string Command();                  
+  string User(); 
+  string Command();                  
   float CpuUtilization();                 
-  std::string Ram() const;                      
+  string Ram() const;                      
   long int UpTime();                      
   bool operator<(Process const& a) const; 
 
@@ -19,6 +21,8 @@ class Process {
 
  private:
   int pid_;
+  string user_ = "";
+  string command_ = ""; 
 };
 
 #endif
